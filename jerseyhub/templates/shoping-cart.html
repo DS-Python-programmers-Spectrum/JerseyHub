@@ -1,0 +1,380 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Shopping Cart</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="icon" href="{% static 'images/icons/favicon.png' %}"/>
+	<link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+	<link rel="stylesheet" href="{% static 'fonts/font-awesome-4.7.0/css/font-awesome.min.css' %}">
+	<link rel="stylesheet" href="{% static 'fonts/iconic/css/material-design-iconic-font.min.css' %}">
+	<link rel="stylesheet" href="{% static 'css/util.css' %}">
+	<link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+
+<body class="animsition">
+
+<!-- HEADER -->
+<header class="header-v4">
+<div class="container-menu-desktop">
+<nav class="limiter-menu-desktop container">
+
+<a href="{% url 'index' %}" class="logo">
+	<img src="{% static 'images/icons/logo1.png' %}">
+</a>
+
+<ul class="main-menu">
+	<li><a href="{% url 'index' %}">Home</a></li>
+	<li><a href="{% url 'product' %}">Shop</a></li>
+	<li><a href="{% url 'cart' %}">Cart</a></li>
+	<a href="{% url 'logout' %}">Logout</a>
+</ul>
+
+<div class="wrap-icon-header flex-w flex-r-m">
+<div class="icon-header-item icon-header-noti"
+     data-notify="{{ cart_items|length }}">
+	<i class="zmdi zmdi-shopping-cart"></i>
+</div>
+</div>
+
+</nav>
+</div>
+</header>
+
+<!-- MINI CART -->
+<div class="wrap-header-cart js-panel-cart">
+<div class="header-cart flex-col-l p-l-65 p-r-25">
+
+<div class="header-cart-title flex-w flex-sb-m p-b-8">
+	<span class="mtext-103 cl2">Your Cart</span>
+</div>
+
+<ul class="header-cart-wrapitem w-full">
+
+{% for item in cart_items %}
+<li class="header-cart-item flex-w flex-t m-b-12">
+	<div class="header-cart-item-img">
+		<img src="{{ item.product.image.url }}" alt="IMG">
+	</div>
+
+	<div class="header-cart-item-txt p-t-8">
+		<a href="#" class="header-cart-item-name m-b-18 hov-cl1 trans-04">
+			{{ item.product.name }}
+		</a>
+
+		<span class="header-cart-item-info">
+			{{ item.quantity }} x ₹{{ item.product.price }}
+		</span>
+	</div>
+</li>
+{% empty %}
+<p>Your cart is empty</p>
+{% endfor %}
+
+</ul>
+
+<div class="header-cart-total">
+	Total: ₹{{ cart.total_price }}
+</div>
+
+</div>
+</div>
+
+<!-- MAIN CART -->
+<div class="bg0 p-t-75 p-b-85">
+
+<div class="container">
+<div class="row">
+
+<div class="col-lg-10 col-xl-7 m-lr-auto m-b-50">
+<div class="m-l-25 m-r--38 m-lr-0-xl">
+
+<div class="wrap-table-shopping-cart">
+<table class="table-shopping-cart">
+
+<tr class="table_head">
+	<th class="column-1">Product</th>
+	<th class="column-2"></th>
+	<th class="column-3">Price</th>
+	<th class="column-4">Quantity</th>
+	<th class="column-5">Total</th>
+	<th>Remove</th>
+</tr>
+
+{% for item in cart_items %}
+<tr class="table_row">
+
+<td class="column-1">
+	<div class="how-itemcart1">
+		<img src="{{ item.product.image.url }}" alt="IMG">
+	</div>
+</td>
+
+<td class="column-2">
+	{{ item.product.name }}
+</td>
+
+<td class="column-3">
+	₹ {{ item.product.price }}
+</td>
+
+<td class="column-4">
+
+	<!-- ✅ PER ITEM FORM -->
+	<form method="POST" action="{% url 'update_cart_item' item.id %}">
+		{% csrf_token %}
+
+		<input type="number"
+		       name="quantity"
+		       value="{{ item.quantity }}"
+		       min="1"
+		       class="mtext-104 cl3 txt-center num-product"
+		       onchange="this.form.submit()">
+	</form>
+
+</td>
+
+<td class="column-5">
+	₹ {{ item.total_price }}
+</td>
+
+<td>
+	<a href="{% url 'remove_item' item.id %}" style="color:red;">
+		X
+	</a>
+</td>
+
+</tr>
+{% empty %}
+<tr>
+	<td colspan="6" style="text-align:center;">
+		Your cart is empty 🛒
+	</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+</div>
+</div>
+
+<!-- TOTAL SECTION -->
+<div class="col-sm-10 col-lg-7 col-xl-5 m-lr-auto m-b-50">
+
+<div class="bor10 p-lr-40 p-t-30 p-b-40">
+
+<h4 class="mtext-109 cl2 p-b-30">
+	Cart Totals
+</h4>
+
+<div class="flex-w flex-t bor12 p-b-13">
+	<div class="size-208">
+		<span class="stext-110 cl2">Subtotal:</span>
+	</div>
+
+	<div class="size-209">
+		<span class="mtext-110 cl2">
+			₹ {{ cart.total_price }}
+		</span>
+	</div>
+</div>
+
+<div class="flex-w flex-t p-t-27 p-b-33">
+	<div class="size-208">
+		<span class="mtext-101 cl2">Total:</span>
+	</div>
+
+	<div class="size-209 p-t-1">
+		<span class="mtext-110 cl2">
+			₹ {{ cart.total_price }}
+		</span>
+	</div>
+</div>
+
+<button class="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04 pointer">
+	Proceed to Checkout
+</button>
+
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+
+
+
+
+
+	<!-- Footer -->
+	<footer class="bg3 p-t-75 p-b-32">
+		<div class="container">
+			<div class="row">
+				<div class="col-sm-6 col-lg-3 p-b-50">
+					<h4 class="stext-301 cl0 p-b-30">
+						Categories
+					</h4>
+
+					<ul>
+						<li class="p-b-10">
+							<a href="#" class="stext-107 cl7 hov-cl1 trans-04">
+								Fullsleeve Jersey
+							</a>
+						</li>
+
+						<li class="p-b-10">
+							<a href="#" class="stext-107 cl7 hov-cl1 trans-04">
+								Fivesleeve Jersey
+							</a>
+						</li>
+
+						<li class="p-b-10">
+							<a href="#" class="stext-107 cl7 hov-cl1 trans-04">
+								Retro Jersey
+							</a>
+						</li>
+
+						<li class="p-b-10">
+							<a href="#" class="stext-107 cl7 hov-cl1 trans-04">
+							Sleeveless Jersey
+							</a>
+						</li>
+					</ul>
+				</div>
+
+				<div class="col-sm-6 col-lg-3 p-b-50">
+					<h4 class="stext-301 cl0 p-b-30">
+						Help
+					</h4>
+
+					<ul>
+						<li class="p-b-10">
+							<a href="#" class="stext-107 cl7 hov-cl1 trans-04">
+								Track Order
+							</a>
+						</li>
+
+						<li class="p-b-10">
+							<a href="#" class="stext-107 cl7 hov-cl1 trans-04">
+								Returns 
+							</a>
+						</li>
+
+						<li class="p-b-10">
+							<a href="#" class="stext-107 cl7 hov-cl1 trans-04">
+								Shipping
+							</a>
+						</li>
+
+						<li class="p-b-10">
+							<a href="#" class="stext-107 cl7 hov-cl1 trans-04">
+								FAQs
+							</a>
+						</li>
+					</ul>
+				</div>
+
+				<div class="col-sm-6 col-lg-3 p-b-50">
+					<h4 class="stext-301 cl0 p-b-30">
+						GET IN TOUCH
+					</h4>
+
+					<p class="stext-107 cl7 size-201">
+						Have any questions? Visit us in-store in Cherthala, Kerala,or give us a call at (+1) 967-166-879.
+					</p>
+
+					<div class="p-t-27">
+						<a href="#" class="fs-18 cl7 hov-cl1 trans-04 m-r-16">
+							<i class="fa fa-facebook"></i>
+						</a>
+
+						<a href="#" class="fs-18 cl7 hov-cl1 trans-04 m-r-16">
+							<i class="fa fa-instagram"></i>
+						</a>
+
+						<a href="#" class="fs-18 cl7 hov-cl1 trans-04 m-r-16">
+							<i class="fa fa-pinterest-p"></i>
+						</a>
+					</div>
+				</div>
+
+				<div class="col-sm-6 col-lg-3 p-b-50">
+					<h4 class="stext-301 cl0 p-b-30">
+						Newsletter
+					</h4>
+
+					<form>
+						<div class="wrap-input1 w-full p-b-4">
+							<input class="input1 bg-none plh1 stext-107 cl7" type="text" name="email" placeholder="email@example.com">
+							<div class="focus-input1 trans-04"></div>
+						</div>
+
+						<div class="p-t-18">
+							<button class="flex-c-m stext-101 cl0 size-103 bg1 bor1 hov-btn2 p-lr-15 trans-04">
+								Subscribe
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+
+			<div class="p-t-40">
+				<div class="flex-c-m flex-w p-b-18">
+					<a href="#" class="m-all-1">
+						<img src="{% static 'images/icons/icon-pay-01.png' %}" alt="ICON-PAY">
+					</a>
+
+					<a href="#" class="m-all-1">
+						<img src="{% static 'images/icons/icon-pay-02.png' %}" alt="ICON-PAY">
+					</a>
+
+					<a href="#" class="m-all-1">
+						<img src="{% static 'images/icons/icon-pay-03.png' %}" alt="ICON-PAY">
+					</a>
+
+					<a href="#" class="m-all-1">
+						<img src="{% static 'images/icons/icon-pay-04.png' %}" alt="ICON-PAY">
+					</a>
+
+					<a href="#" class="m-all-1">
+						<img src="{% static 'images/icons/icon-pay-05.png' %}" alt="ICON-PAY">
+					</a>
+				</div>
+
+				<p class="stext-107 cl6 txt-center">
+					<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | Made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a> &amp; distributed by <a href="https://themewagon.com" target="_blank">ThemeWagon</a>
+<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+
+				</p>
+			</div>
+		</div>
+	</footer>
+
+
+	<!-- Back to top -->
+	<div class="btn-back-to-top" id="myBtn">
+		<span class="symbol-btn-back-to-top">
+			<i class="zmdi zmdi-chevron-up"></i>
+		</span>
+	</div>
+
+
+
+
+	
+<!-- SCRIPTS -->
+	<script src="{% static 'vendor/jquery/jquery-3.2.1.min.js' %}"></script>
+<!--===============================================================================================-->
+	<script src="{% static 'vendor/animsition/js/animsition.min.js' %}"></script>
+<!--===============================================================================================-->
+	<script src="{% static 'vendor/bootstrap/js/popper.js' %}"></script>
+	<script src="{% static 'vendor/bootstrap/js/bootstrap.min.js' %}"></script>
+	<script src="{% static 'js/main.js' %}"></script>
+
+</body>
+</html>

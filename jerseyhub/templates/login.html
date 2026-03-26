@@ -1,0 +1,200 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jersey Hub Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Poppins',sans-serif}
+
+/* FOOTBALL FIELD BACKGROUND */
+body{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+
+background:
+linear-gradient(rgba(10,20,30,.75),rgba(10,20,30,.85)),
+url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=80");
+
+background-size:cover;
+background-position:center;
+animation:stadiumZoom 20s ease-in-out infinite alternate;
+overflow:hidden;
+}
+
+@keyframes stadiumZoom{
+from{background-size:110%}
+to{background-size:125%}
+}
+
+/* FLOATING ANIMATED JERSEY ICONS */
+.jersey{
+position:absolute;
+opacity:.35;
+animation:floatJersey linear infinite;
+pointer-events:none;
+}
+
+.j1{left:5%;font-size:26px;animation-duration:18s}
+.j2{left:15%;font-size:34px;animation-duration:22s}
+.j3{left:28%;font-size:24px;animation-duration:16s}
+.j4{left:40%;font-size:30px;animation-duration:20s}
+.j5{left:55%;font-size:28px;animation-duration:24s}
+.j6{left:68%;font-size:36px;animation-duration:19s}
+.j7{left:80%;font-size:26px;animation-duration:21s}
+.j8{left:92%;font-size:32px;animation-duration:23s}
+
+@keyframes floatJersey{
+0%{transform:translateY(110vh) translateX(0) rotate(0deg)}
+25%{transform:translateY(75vh) translateX(20px) rotate(90deg)}
+50%{transform:translateY(40vh) translateX(-20px) rotate(180deg)}
+75%{transform:translateY(10vh) translateX(15px) rotate(270deg)}
+100%{transform:translateY(-15vh) translateX(-10px) rotate(360deg)}
+}
+
+/* LOGIN CARD */
+.container{
+background:rgba(255,255,255,0.95);
+padding:40px;
+border-radius:20px;
+width:350px;
+box-shadow:0 10px 25px rgba(0,0,0,0.35);
+text-align:center;
+animation:fadeIn 1.2s ease;
+}
+
+@keyframes fadeIn{
+from{opacity:0;transform:translateY(30px) scale(.95)}
+to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* LOGO */
+.logo{
+font-size:30px;
+font-weight:700;
+margin-bottom:10px;
+letter-spacing:3px;
+color:#203a43;
+}
+
+.subtitle{
+font-size:14px;
+color:gray;
+margin-bottom:30px;
+}
+
+.input-group{
+margin-bottom:20px;
+text-align:left;
+}
+
+.input-group label{
+font-size:13px;
+font-weight:500;
+}
+
+.input-group input{
+width:100%;
+padding:12px;
+margin-top:5px;
+border-radius:8px;
+border:1px solid #ccc;
+outline:none;
+transition:.3s;
+}
+
+.input-group input:focus{
+border-color:#2c5364;
+transform:scale(1.02);
+}
+
+/* LOGIN BUTTON */
+.login-btn{
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+background:#2c5364;
+color:white;
+font-size:16px;
+font-weight:600;
+cursor:pointer;
+transition:.3s;
+}
+
+.login-btn:hover{
+background:#1b3c4a;
+transform:scale(1.05);
+}
+
+.extra{
+margin-top:15px;
+font-size:13px;
+}
+
+.extra a{
+color:#2c5364;
+text-decoration:none;
+font-weight:500;
+}
+
+.extra a:hover{
+text-decoration:underline;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- Floating animated jerseys -->
+<div class="jersey j1">👕</div>
+<div class="jersey j2">👕</div>
+<div class="jersey j3">👕</div>
+<div class="jersey j4">👕</div>
+<div class="jersey j5">👕</div>
+<div class="jersey j6">👕</div>
+<div class="jersey j7">👕</div>
+<div class="jersey j8">👕</div>
+
+<div class="container">
+<div class="logo">JERSEY HUB</div>
+<div class="subtitle">Login to your account</div>
+
+
+<form method="POST">
+    {% csrf_token %}
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="msg {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+<div class="input-group">
+<label>fullname</label>
+<input type="text" name="username" placeholder="enter fullname" required>
+</div>
+
+<div class="input-group">
+<label>Password</label>
+<input type="password" name="password" placeholder="Enter your password" required>
+</div>
+
+<button class="login-btn">Login</button>
+</form>
+
+<div class="extra">
+<p>Don't have an account? <a href="#">Sign Up</a></p>
+</div>
+</div>
+
+</body>
+</html>
