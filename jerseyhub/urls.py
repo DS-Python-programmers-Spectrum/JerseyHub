@@ -1,6 +1,6 @@
 from django.urls import path
 from.import views
-
+from .views import checkout, payment_success, order_success, payment_failed
 urlpatterns=[
     path('about/',views.about,name='about'),
     path('checkout/',views.checkout,name='checkout'),
@@ -16,6 +16,11 @@ urlpatterns=[
     path('remove/<int:id>/', views.remove_item, name='remove_item'),
 path('update-item/<int:item_id>/', views.update_cart_item, name='update_cart_item'),
 path('logout/', views.user_logout, name='logout'),
+
+path('checkout/', checkout, name='checkout'),
+    path('payment-success/', payment_success, name='payment_success'),
+    path('failed/', payment_failed, name='payment_failed'),
+        path('payment/<int:order_id>/', views.payment_page, name='payment_page'),
     
 
 

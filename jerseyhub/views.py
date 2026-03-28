@@ -1,12 +1,12 @@
 from django.shortcuts import render
+from urllib3 import request
 from .models import Product
 from django.http import HttpResponse
 
 def about(request):
     return render(request,'about.html')
 
-def checkout(request):
-    return render(request,'checkout.html')
+
 
 def contact(request):
     return render(request,'contact.html')
@@ -150,3 +150,142 @@ from django.shortcuts import redirect
 def user_logout(request):
     logout(request)
     return redirect('login')  # or 'index'
+
+
+# views.py
+
+import razorpay
+from django.conf import settings
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Cart, Order, OrderItem
+
+import razorpay
+from django.conf import settings
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+
+from .models import Cart, CartItem, Order, OrderItem
+
+
+# ✅ CHECKOUT VIEW
+import razorpay
+from django.conf import settings
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from .models import Cart, CartItem, Order, OrderItem
+
+@login_required
+def checkout(request):
+    cart = get_object_or_404(Cart, user=request.user)
+    cart_items = CartItem.objects.filter(cart=cart)
+
+    if not cart_items.exists():
+        return redirect('cart')
+
+    total = sum(item.product.price * item.quantity for item in cart_items)
+    delivery_charge = 50
+    grand_total = total + delivery_charge
+
+    if request.method == "POST":
+        # 1️⃣ Create order
+        order = Order.objects.create(
+            user=request.user,
+            full_name=request.POST.get('full_name'),
+            phone=request.POST.get('phone'),
+            address=request.POST.get('address'),
+            city=request.POST.get('city'),
+            pincode=request.POST.get('pincode'),
+            total_amount=grand_total
+        )
+
+        # 2️⃣ Copy cart items into OrderItems
+        for item in cart_items:
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                quantity=item.quantity,
+                price=item.product.price
+            )
+
+        # 3️⃣ Clear cart immediately
+        cart_items.delete()
+
+        # 4️⃣ Create Razorpay order
+        client = razorpay.Client(
+            auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+        )
+        payment = client.order.create({
+            "amount": int(grand_total * 100),
+            "currency": "INR",
+            "payment_capture": 1
+        })
+        order.razorpay_order_id = payment['id']
+        order.save()
+
+        # 5️⃣ Render payment page
+        return render(request, 'payment.html', {
+            'order': order,
+            'order_items': order.orderitem_set.all(),
+            'razorpay_key': settings.RAZORPAY_KEY_ID,
+            'amount': int(grand_total * 100)
+        })
+
+    return render(request, 'checkout.html', {
+        'cart_items': cart_items,
+        'total': total,
+        'delivery_charge': delivery_charge
+    })
+
+@csrf_exempt
+@login_required
+def payment_success(request):
+    if request.method == "POST":
+        razorpay_order_id = request.POST.get('razorpay_order_id')
+        razorpay_payment_id = request.POST.get('razorpay_payment_id')
+        razorpay_signature = request.POST.get('razorpay_signature')
+
+        order = get_object_or_404(Order, razorpay_order_id=razorpay_order_id)
+
+        client = razorpay.Client(
+            auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+        )
+
+        try:
+            client.utility.verify_payment_signature({
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': razorpay_payment_id,
+                'razorpay_signature': razorpay_signature
+            })
+
+            order.is_paid = True
+            order.razorpay_payment_id = razorpay_payment_id
+            order.save()
+
+            return redirect('order_success')
+
+        except:
+            return redirect('payment_failed')
+
+
+@login_required
+def payment_page(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    return render(request, 'payment.html', {
+        'order': order,
+        'razorpay_key': settings.RAZORPAY_KEY_ID,
+        'amount': int(order.total_amount * 100)  # amount in paise
+    })
+
+
+@login_required
+def order_success(request):
+    order = Order.objects.filter(user=request.user, is_paid=True).last()
+    return render(request, 'success.html', {'order': order})
+
+
+def payment_failed(request):
+    return render(request, 'failed.html', {'message': "Your payment was not completed."})
